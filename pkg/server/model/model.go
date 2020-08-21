@@ -14,3 +14,9 @@ type Detail struct {
 	Date	string	`json:"date"`
 	Time	string	`json:"time"`
 }
+
+type ZellerElements struct {
+	Year	int	`json:"year"`
+	Month	int	`json:"month"`
+	Day		int	`json:"day"`
+}
