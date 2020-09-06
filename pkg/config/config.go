@@ -4,6 +4,8 @@ import(
 	"os"
 	"fmt"
 	"log"
+	"time"
+	"math"
 )
 
 type dataBaseConfig struct {
@@ -52,4 +54,9 @@ func GetConnectionToken() string {
 	}
 
 	return fmt.Sprintf(accessTokenTemplate, c.User, c.Pass, c.IP, c.Port, c.Name)
+}
+
+// Exponential Backoff
+func BackOff(i int) {
+	time.Sleep(time.Second * time.Duration(math.Pow(2, float64(i))))
 }

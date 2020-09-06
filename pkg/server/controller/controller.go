@@ -1,23 +1,32 @@
 package controller
 
 import(
+	_ "fmt"
 	"log"
 
 	// import gin library
 	"github.com/gin-gonic/gin"
 
+	// import gorm library
+	"github.com/jinzhu/gorm"
+    _ "github.com/jinzhu/gorm/dialects/mysql"
+
 	// import sample API packages
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/server/model"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/stamp"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/zeller"
+	"github.com/miraikeitai2020/backend-summer-vacation/pkg/crypto"
 )
 
 var(
 	user 		model.User
 	calcArgs	model.ZellerElements
+	sign		model.DBUser
+	dbUser		model.DBUser
 )
 
 type Controller struct {
+	DB	*gorm.DB
 }
 
 func (ctrl *Controller)HelloWorld(context *gin.Context) {
@@ -45,7 +54,7 @@ func (ctrl *Controller)SayHello(context *gin.Context) {
 //   "timestamp": string,
 //   "detail": {
 //     "date": string, //例： 2020-09-02
-//     "time": string, //例: 00:00:00
+//     "time": string  //例: 00:00:00
 //   }
 // }
 func (ctrl *Controller)Task1(context *gin.Context) {
@@ -61,7 +70,7 @@ func (ctrl *Controller)Task1(context *gin.Context) {
 // {
 //   "year": Int,
 //   "month": Int,
-//   "day": Int,
+//   "day": Int
 // }
 // レスポンス => 
 // {
@@ -88,13 +97,36 @@ func (ctrl *Controller)Task2(context *gin.Context) {
 // リクエスト => 
 // {
 //   "id": string,
-//   "password": string,
+//   "password": string
 // }
 // レスポンス => 
 // {
 //   "token": string
 // }
 func (ctrl *Controller)SignUp(context *gin.Context) {
+	err := context.BindJSON(&sign)
+	if err != nil {
+		log.Println("[ERROR] Faild Bind JSON")
+		context.JSON(500, gin.H{"message": "Internal Server Error"})
+		return
+	}
+	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
+	if dbUser.ID != "" {
+		context.JSON(412, gin.H{
+			"status": 412,
+			"message": "Already user exist.",
+		})
+		return
+	}
+	ctrl.DB.Exec("INSERT INTO `users` (`id`, `password`) VALUES (?, ?)", sign.ID, crypto.CreateHashWithPass(sign.Password))
+	if token, err := crypto.CreateToken(sign); err == nil {
+		context.JSON(201, gin.H{"token": token})
+		return
+	}
+	context.JSON(412, gin.H{
+		"status": 412,
+		"message": "Failed create token",
+	})
 }
 
 // 課題4
@@ -113,4 +145,33 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 //   "certification": boolean
 // }
 func (ctrl *Controller)SignIn(context *gin.Context) {
+	err := context.BindJSON(&sign)
+	if err != nil {
+		log.Println("[ERROR] Faild Bind JSON")
+		context.JSON(500, gin.H{"message": "Internal Server Error"})
+		return
+	}
+	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
+	if dbUser.ID == "" {
+		context.JSON(412, gin.H{
+			"status": 412,
+			"message": "Already user exist.",
+		})
+		return
+	}
+	if dbUser.Password != crypto.CreateHashWithPass(sign.Password) {
+		context.JSON(412, gin.H{
+			"status": 412,
+			"message": "Miss match password.",
+		})
+		return
+	}
+	if token, err := crypto.CreateToken(sign); err == nil {
+		context.JSON(201, gin.H{"token": token})
+		return
+	}
+	context.JSON(412, gin.H{
+		"status": 412,
+		"message": "Failed create token",
+	})	
 }
