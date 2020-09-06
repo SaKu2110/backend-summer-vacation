@@ -45,7 +45,7 @@ func setupRooter(ctrl controller.Controller) *gin.Engine {
 	router.GET("/task1", ctrl.Task1)
 	router.POST("/task2", ctrl.Task2)
 	router.POST("/task3", ctrl.SignUp)
-	// router.POST("/task4", ctrl.SignIn)
+	router.POST("/task4", ctrl.SignIn)
 	return router
 }
 

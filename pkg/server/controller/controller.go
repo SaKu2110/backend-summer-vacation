@@ -1,6 +1,7 @@
 package controller
 
 import(
+	_ "fmt"
 	"log"
 
 	// import gin library
@@ -20,8 +21,8 @@ import(
 var(
 	user 		model.User
 	calcArgs	model.ZellerElements
-	signUp		model.DBUser
-	dbUser	model.DBUser
+	sign		model.DBUser
+	dbUser		model.DBUser
 )
 
 type Controller struct {
@@ -103,14 +104,13 @@ func (ctrl *Controller)Task2(context *gin.Context) {
 //   "token": string
 // }
 func (ctrl *Controller)SignUp(context *gin.Context) {
-	err := context.BindJSON(&signUp)
+	err := context.BindJSON(&sign)
 	if err != nil {
 		log.Println("[ERROR] Faild Bind JSON")
 		context.JSON(500, gin.H{"message": "Internal Server Error"})
 		return
 	}
-	ctrl.DB.Table("users").Create(&signUp)
-	// ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", signUp.ID).Scan(&dbUser)
+	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
 	if dbUser.ID != "" {
 		context.JSON(412, gin.H{
 			"status": 412,
@@ -118,8 +118,8 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		})
 		return
 	}
-	ctrl.DB.Raw("INSERT INTO users VALUES (?, ?)", signUp.ID, crypto.CreateHashWithPass(signUp.Password))
-	if token, err := crypto.CreateToken(signUp); err == nil {
+	ctrl.DB.Exec("INSERT INTO `users` (`id`, `password`) VALUES (?, ?)", sign.ID, crypto.CreateHashWithPass(sign.Password))
+	if token, err := crypto.CreateToken(sign); err == nil {
 		context.JSON(201, gin.H{"token": token})
 		return
 	}
@@ -145,4 +145,33 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 //   "certification": boolean
 // }
 func (ctrl *Controller)SignIn(context *gin.Context) {
+	err := context.BindJSON(&sign)
+	if err != nil {
+		log.Println("[ERROR] Faild Bind JSON")
+		context.JSON(500, gin.H{"message": "Internal Server Error"})
+		return
+	}
+	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
+	if dbUser.ID == "" {
+		context.JSON(412, gin.H{
+			"status": 412,
+			"message": "Already user exist.",
+		})
+		return
+	}
+	if dbUser.Password != crypto.CreateHashWithPass(sign.Password) {
+		context.JSON(412, gin.H{
+			"status": 412,
+			"message": "Miss match password.",
+		})
+		return
+	}
+	if token, err := crypto.CreateToken(sign); err == nil {
+		context.JSON(201, gin.H{"token": token})
+		return
+	}
+	context.JSON(412, gin.H{
+		"status": 412,
+		"message": "Failed create token",
+	})	
 }
