@@ -15,8 +15,15 @@ type Detail struct {
 	Time	string	`json:"time"`
 }
 
+// TASK2 REQUEST BODY
 type ZellerElements struct {
 	Year	int	`json:"year"`
 	Month	int	`json:"month"`
 	Day		int	`json:"day"`
+}
+
+// TASK3 REQUEST BODY
+type DBUser struct {
+	ID			string
+	Password	string
 }
