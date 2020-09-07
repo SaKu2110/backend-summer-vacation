@@ -111,8 +111,11 @@ func (ctrl *Controller)Task2(context *gin.Context) {
 func (ctrl *Controller)SignUp(context *gin.Context) {
 	err := context.BindJSON(&sign)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON")
-		context.JSON(500, gin.H{"message": "Internal Server Error"})
+		log.Println("[ERROR] Faild Bind JSON.")
+		context.JSON(500, gin.H{
+			"status": 500,
+			"message": "Faild bind request JSON.",
+		})
 		return
 	}
 	ctrl.DB.Raw(QUERY_FORMAT_GET_USER, sign.ID).Scan(&dbUser)
@@ -128,9 +131,10 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		context.JSON(201, gin.H{"token": token})
 		return
 	}
+	log.Println("[ERROR] Faild Create Token.")
 	context.JSON(412, gin.H{
 		"status": 412,
-		"message": "Failed create token",
+		"message": "Failed create token.",
 	})
 }
 
@@ -152,8 +156,11 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 func (ctrl *Controller)SignIn(context *gin.Context) {
 	err := context.BindJSON(&sign)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON")
-		context.JSON(500, gin.H{"message": "Internal Server Error"})
+		log.Println("[ERROR] Faild Bind JSON.")
+		context.JSON(500, gin.H{
+			"status": 500,
+			"message": "Faild bind request JSON."
+		})
 		return
 	}
 	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
@@ -175,8 +182,9 @@ func (ctrl *Controller)SignIn(context *gin.Context) {
 		context.JSON(201, gin.H{"token": token})
 		return
 	}
+	log.Println("[ERROR] Faild Create Token.")
 	context.JSON(412, gin.H{
 		"status": 412,
 		"message": "Failed create token",
-	})	
+	})
 }
