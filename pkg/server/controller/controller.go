@@ -1,8 +1,6 @@
 package controller
 
 import(
-	"log"
-
 	// import gin library
 	"github.com/gin-gonic/gin"
 
@@ -11,6 +9,7 @@ import(
     _ "github.com/jinzhu/gorm/dialects/mysql"
 
 	// import sample API packages
+	"github.com/miraikeitai2020/backend-summer-vacation/pkg/debug"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/server/model"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/stamp"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/zeller"
@@ -36,7 +35,7 @@ func (ctrl *Controller)HelloWorld(context *gin.Context) {
 func (ctrl *Controller)SayHello(context *gin.Context) {
 	err := context.BindJSON(&user)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON")
+		debug.PrintErrLog("Faild Bind JSON.")
 		context.JSON(500, gin.H{"message": "Internal Server Error"})
 		return
 	}
@@ -79,7 +78,7 @@ func (ctrl *Controller)Task1(context *gin.Context) {
 func (ctrl *Controller)Task2(context *gin.Context) {
 	err := context.BindJSON(&calcArgs)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON")
+		debug.PrintErrLog("Faild Bind JSON.")
 		context.JSON(500, gin.H{"message": "Internal Server Error"})
 		return
 	}
@@ -106,7 +105,7 @@ func (ctrl *Controller)Task2(context *gin.Context) {
 func (ctrl *Controller)SignUp(context *gin.Context) {
 	err := context.BindJSON(&sign)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON.")
+		debug.PrintErrLog("Faild Bind JSON.")
 		context.JSON(500, gin.H{
 			"status": 500,
 			"message": "Faild bind request JSON.",
@@ -126,7 +125,7 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		context.JSON(201, gin.H{"token": token})
 		return
 	}
-	log.Println("[ERROR] Faild Create Token.")
+	debug.PrintErrLog("Faild Create Token.")
 	context.JSON(412, gin.H{
 		"status": 412,
 		"message": "Failed create token.",
@@ -151,14 +150,14 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 func (ctrl *Controller)SignIn(context *gin.Context) {
 	err := context.BindJSON(&sign)
 	if err != nil {
-		log.Println("[ERROR] Faild Bind JSON.")
+		debug.PrintErrLog("Faild Bind JSON.")
 		context.JSON(500, gin.H{
 			"status": 500,
 			"message": "Faild bind request JSON.",
 		})
 		return
 	}
-	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
+	ctrl.DB.Raw(model.QUERY_FORMAT_GET_USER, sign.ID).Scan(&dbUser)
 	if dbUser.ID == "" {
 		context.JSON(412, gin.H{
 			"status": 412,
@@ -177,7 +176,7 @@ func (ctrl *Controller)SignIn(context *gin.Context) {
 		context.JSON(201, gin.H{"token": token})
 		return
 	}
-	log.Println("[ERROR] Faild Create Token.")
+	debug.PrintErrLog("Faild Create Token.")
 	context.JSON(412, gin.H{
 		"status": 412,
 		"message": "Failed create token",

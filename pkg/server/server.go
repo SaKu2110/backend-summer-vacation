@@ -1,8 +1,6 @@
 package main
 
 import(
-	"fmt"
-
 	// import gin library
 	"github.com/gin-gonic/gin"
 
@@ -11,6 +9,7 @@ import(
     _ "github.com/jinzhu/gorm/dialects/mysql"
 
 	// import sample API packages
+	"github.com/miraikeitai2020/backend-summer-vacation/pkg/debug"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/config"
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/server/controller"
 )
@@ -27,7 +26,7 @@ func initializeDataBase() (*gorm.DB, error) {
 		}
 		config.BackOff(i)
 	}
-	return nil, fmt.Errorf("Faild connection database")
+	return nil, debug.Err("Faild connection database")
 }
 
 func initializeController(db *gorm.DB) controller.Controller {
