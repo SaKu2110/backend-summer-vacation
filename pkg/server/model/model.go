@@ -1,5 +1,11 @@
 package model
 
+// SQL QUERY
+const(
+	QUERY_FORMAT_GET_USER = "SELECT id, password FROM `users` WHERE id = ?"
+	QUERY_FORMAT_SET_USER = "INSERT INTO `users` (id, password) VALUES (?, ?)"
+)
+
 type User struct {
 	Name	string `json:"name"`
 }
