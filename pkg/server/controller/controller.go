@@ -17,11 +17,6 @@ import(
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/crypto"
 )
 
-const(
-	QUERY_FORMAT_GET_USER = "SELECT id, password FROM users WHERE id = ?"
-	QUERY_FORMAT_SET_USER = "INSERT INTO `users` (`id`, `password`) VALUES (?, ?)"
-)
-
 var(
 	user 		model.User
 	calcArgs	model.ZellerElements
@@ -118,7 +113,7 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		})
 		return
 	}
-	ctrl.DB.Raw(QUERY_FORMAT_GET_USER, sign.ID).Scan(&dbUser)
+	ctrl.DB.Raw(model.QUERY_FORMAT_GET_USER, sign.ID).Scan(&dbUser)
 	if dbUser.ID != "" {
 		context.JSON(412, gin.H{
 			"status": 412,
@@ -126,7 +121,7 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		})
 		return
 	}
-	ctrl.DB.Exec(QUERY_FORMAT_SET_USER, sign.ID, crypto.CreateHashWithPass(sign.Password))
+	ctrl.DB.Exec(model.QUERY_FORMAT_SET_USER, sign.ID, crypto.CreateHashWithPass(sign.Password))
 	if token, err := crypto.CreateToken(sign); err == nil {
 		context.JSON(201, gin.H{"token": token})
 		return
@@ -159,7 +154,7 @@ func (ctrl *Controller)SignIn(context *gin.Context) {
 		log.Println("[ERROR] Faild Bind JSON.")
 		context.JSON(500, gin.H{
 			"status": 500,
-			"message": "Faild bind request JSON."
+			"message": "Faild bind request JSON.",
 		})
 		return
 	}
