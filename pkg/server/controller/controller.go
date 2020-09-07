@@ -1,7 +1,6 @@
 package controller
 
 import(
-	_ "fmt"
 	"log"
 
 	// import gin library
@@ -18,9 +17,15 @@ import(
 	"github.com/miraikeitai2020/backend-summer-vacation/pkg/crypto"
 )
 
+const(
+	QUERY_FORMAT_GET_USER = "SELECT id, password FROM users WHERE id = ?"
+	QUERY_FORMAT_SET_USER = "INSERT INTO `users` (`id`, `password`) VALUES (?, ?)"
+)
+
 var(
 	user 		model.User
 	calcArgs	model.ZellerElements
+	// sign data format
 	sign		model.DBUser
 	dbUser		model.DBUser
 )
@@ -110,7 +115,7 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		context.JSON(500, gin.H{"message": "Internal Server Error"})
 		return
 	}
-	ctrl.DB.Raw("SELECT id, password FROM users WHERE id = ?", sign.ID).Scan(&dbUser)
+	ctrl.DB.Raw(QUERY_FORMAT_GET_USER, sign.ID).Scan(&dbUser)
 	if dbUser.ID != "" {
 		context.JSON(412, gin.H{
 			"status": 412,
@@ -118,7 +123,7 @@ func (ctrl *Controller)SignUp(context *gin.Context) {
 		})
 		return
 	}
-	ctrl.DB.Exec("INSERT INTO `users` (`id`, `password`) VALUES (?, ?)", sign.ID, crypto.CreateHashWithPass(sign.Password))
+	ctrl.DB.Exec(QUERY_FORMAT_SET_USER, sign.ID, crypto.CreateHashWithPass(sign.Password))
 	if token, err := crypto.CreateToken(sign); err == nil {
 		context.JSON(201, gin.H{"token": token})
 		return
